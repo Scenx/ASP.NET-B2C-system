@@ -1,0 +1,766 @@
+USE [SHOP_DATA]
+GO
+/****** Object:  Table [dbo].[Vote]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Vote](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [varchar](max) NULL,
+	[VoteNum] [int] NULL,
+	[Vis] [bit] NULL,
+ CONSTRAINT [PK_Vote] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SET ANSI_PADDING OFF
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'1表示显示，0表示隐藏' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Vote', @level2type=N'COLUMN',@level2name=N'Vis'
+GO
+SET IDENTITY_INSERT [dbo].[Vote] ON
+INSERT [dbo].[Vote] ([Id], [Name], [VoteNum], [Vis]) VALUES (1, N'很好', 14, 1)
+INSERT [dbo].[Vote] ([Id], [Name], [VoteNum], [Vis]) VALUES (2, N'一般', 3, 1)
+INSERT [dbo].[Vote] ([Id], [Name], [VoteNum], [Vis]) VALUES (3, N'差', 2, 1)
+INSERT [dbo].[Vote] ([Id], [Name], [VoteNum], [Vis]) VALUES (4, N'很差', 0, 1)
+SET IDENTITY_INSERT [dbo].[Vote] OFF
+/****** Object:  Table [dbo].[UserMess]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[UserMess](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [varchar](max) NULL,
+	[Content] [varchar](max) NULL,
+	[MeTime] [datetime] NULL,
+	[Vis] [bit] NULL,
+	[reply] [text] NULL
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+SET ANSI_PADDING OFF
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'1表示显示，0表示隐藏' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'UserMess', @level2type=N'COLUMN',@level2name=N'Vis'
+GO
+SET IDENTITY_INSERT [dbo].[UserMess] ON
+INSERT [dbo].[UserMess] ([Id], [Name], [Content], [MeTime], [Vis], [reply]) VALUES (24, N'123', N'12312[:05:]', CAST(0x0000A03300B669D7 AS DateTime), 1, N'whatadf')
+SET IDENTITY_INSERT [dbo].[UserMess] OFF
+/****** Object:  Table [dbo].[User]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[User](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [varchar](max) NULL,
+	[Pass] [varchar](max) NULL,
+	[Email] [varchar](max) NULL,
+	[Phone] [varchar](max) NULL,
+	[Telephone] [bigint] NULL,
+	[Adress] [varchar](max) NULL,
+	[IP] [varchar](max) NULL,
+	[Vis] [bit] NULL,
+	[IsManage] [bit] NULL,
+ CONSTRAINT [PK_User] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SET ANSI_PADDING OFF
+GO
+SET IDENTITY_INSERT [dbo].[User] ON
+INSERT [dbo].[User] ([Id], [Name], [Pass], [Email], [Phone], [Telephone], [Adress], [IP], [Vis], [IsManage]) VALUES (20, N'a123789', N'a123789', N'862351901@qq.com', N'028-88888888', 13307889898, N'河南省郑州市华北水利水电大学', N'', 1, 1)
+SET IDENTITY_INSERT [dbo].[User] OFF
+/****** Object:  StoredProcedure [dbo].[SearchItemByCategoryIdByProductByItem]    Script Date: 06/20/2017 06:49:51 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SearchItemByCategoryIdByProductByItem]
+(
+@CategoryId varchar(30),@ProductId varchar(30),@PriceStart decimal(9,2),@PriceEnd decimal(9,2),@ItemName nvarchar(30)
+)
+AS
+declare @Sql nvarchar(2000)
+
+IF(@CategoryId='all')
+begin
+SET @Sql='SELECT Id,Name,AgoraPrice,MemberPrice,VipPrice,SmallImg FROM Item WHERE Vis=1'
+IF(@PriceStart>=0 AND @PriceStart< @PriceEnd)
+SET @Sql=@Sql+' AND MemberPrice>='+char(39)+cast(@PriceStart as varchar)+char(39)+' AND MemberPrice<'+char(39)+cast(@PriceEnd as varchar)+char(39)+''
+IF(@ItemName<>'0')
+SET @Sql=@Sql+' AND Name LIKE ''%'+@ItemName+'%'''
+end
+
+else
+begin
+SET @Sql='SELECT i.Id,i.Name,i.AgoraPrice,i.MemberPrice,i.VipPrice,i.SmallImg FROM Item i INNER JOIN Product p ON i.ProductId=p.Id WHERE p.CategoryId='+char(39)+cast(@CategoryId as varchar)+char(39)+' AND  i.Vis=1'
+IF(@PriceStart>=0 AND @PriceStart< @PriceEnd)
+SET @Sql=@Sql+' AND i.MemberPrice>='+char(39)+cast(@PriceStart as varchar)+char(39)+' AND i.MemberPrice<'+char(39)+cast(@PriceEnd as varchar)+char(39)+''
+IF(@ItemName<>'0')
+SET @Sql=@Sql+' AND i.Name LIKE ''%'+@ItemName+'%'''
+end
+EXEC(@Sql)
+GO
+/****** Object:  StoredProcedure [dbo].[SearchItemByCategoryId]    Script Date: 06/20/2017 06:49:51 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SearchItemByCategoryId]
+(
+@CategoryId varchar(30),@ItemName nvarchar(30)
+)
+AS
+declare @Sql nvarchar(800)
+
+if(@CategoryId='all')
+begin
+SET @Sql='SELECT Id,Name,AgoraPrice,MemberPrice,VipPrice,SmallImg FROM Item WHERE  Vis=1  AND Name LIKE ''%'+@ItemName+'%'''
+end
+
+else
+begin
+SET @Sql='SELECT i.Id,i.Name,i.AgoraPrice,i.MemberPrice,i.VipPrice,i.SmallImg FROM Item i INNER JOIN Product p ON i.ProductId=p.Id WHERE p.CategoryId='+char(39)+cast(@CategoryId as varchar)+char(39)+' AND  i.Vis=1  AND i.Name LIKE ''%'+@ItemName+'%'''
+end
+EXEC(@Sql)
+GO
+/****** Object:  Table [dbo].[Category]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Category](
+	[Id] [varchar](30) NOT NULL,
+	[Name] [nvarchar](max) NULL,
+	[Descriptions] [nvarchar](max) NULL,
+	[Vis] [bit] NULL,
+ CONSTRAINT [PK_Category] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SET ANSI_PADDING OFF
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'1为显示，0为隐藏' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Category', @level2type=N'COLUMN',@level2name=N'Vis'
+GO
+INSERT [dbo].[Category] ([Id], [Name], [Descriptions], [Vis]) VALUES (N'Cosmetic', N'化妆品', N'化妆品', 1)
+INSERT [dbo].[Category] ([Id], [Name], [Descriptions], [Vis]) VALUES (N'Dress', N'服装', N'服装', 1)
+INSERT [dbo].[Category] ([Id], [Name], [Descriptions], [Vis]) VALUES (N'Number', N'数码', N'数码', 1)
+INSERT [dbo].[Category] ([Id], [Name], [Descriptions], [Vis]) VALUES (N'pet', N'宠物', N'宠物', 1)
+INSERT [dbo].[Category] ([Id], [Name], [Descriptions], [Vis]) VALUES (N'Raiment', N'服饰', N'服饰', 1)
+INSERT [dbo].[Category] ([Id], [Name], [Descriptions], [Vis]) VALUES (N'Shoes', N'精美鞋', N'精美鞋', 1)
+/****** Object:  Table [dbo].[Item]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Item](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [varchar](max) NULL,
+	[ProductId] [varchar](max) NULL,
+	[AgoraPrice] [decimal](18, 2) NULL,
+	[MemberPrice] [decimal](18, 2) NULL,
+	[VipPrice] [decimal](18, 2) NULL,
+	[Area] [varchar](max) NULL,
+	[Fresh] [varchar](max) NULL,
+	[Brand] [varchar](max) NULL,
+	[ClickTime] [int] NULL,
+	[Sale] [int] NULL,
+	[Remant] [int] NULL,
+	[SmallImg] [varchar](max) NULL,
+	[BitImg] [varchar](max) NULL,
+	[Commend] [varchar](max) NULL,
+	[Vis] [bit] NULL,
+ CONSTRAINT [PK_Item] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SET ANSI_PADDING OFF
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'0' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Item', @level2type=N'COLUMN',@level2name=N'ClickTime'
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'出售的商品总量' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Item', @level2type=N'COLUMN',@level2name=N'Sale'
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'剩余的商品总量' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Item', @level2type=N'COLUMN',@level2name=N'Remant'
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'是否为推荐的商品' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Item', @level2type=N'COLUMN',@level2name=N'Commend'
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'1表示显示，0表示隐藏' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Item', @level2type=N'COLUMN',@level2name=N'Vis'
+GO
+SET IDENTITY_INSERT [dbo].[Item] ON
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (2, N'韩国今夏之光，最美的女人', N'Coat', CAST(300.00 AS Decimal(18, 2)), CAST(220.00 AS Decimal(18, 2)), CAST(190.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'真维斯', 71, 60, 124, N'Img\small_002.jpg', N'Img\big_002.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (3, N'巴黎之春，透明时装,让男人更加爱你', N'Coat', CAST(156.00 AS Decimal(18, 2)), CAST(125.00 AS Decimal(18, 2)), CAST(110.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'美斯特邦威', 11, 230, 56, N'Img\small_003.jpg', N'Img\big_003.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (4, N'穿上爱的外衣，青春永远留住', N'Coat', CAST(450.00 AS Decimal(18, 2)), CAST(390.00 AS Decimal(18, 2)), CAST(300.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'阿迪', 19, 60, 33, N'Img\small_004.jpg', N'Img\big_004.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (6, N'迷你模式装，看不上眼的女生', N'Coat', CAST(160.00 AS Decimal(18, 2)), CAST(130.56 AS Decimal(18, 2)), CAST(100.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'美焕', 12, 150, 10, N'Img\small_006.jpg', N'Img\big_006.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (33, N'今天你有自信吗？今天要约会吗？', N'Coat', CAST(99.00 AS Decimal(18, 2)), CAST(88.00 AS Decimal(18, 2)), CAST(70.78 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'美斯特邦威', 27, 26, 56, N'Img\small_008.jpg', N'Img\big_008.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (34, N'梦想成真之快乐至上，让女变得更加美丽', N'Shirt', CAST(66.00 AS Decimal(18, 2)), CAST(58.00 AS Decimal(18, 2)), CAST(50.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'灰鼠', 4, 23, 5, N'Img\small_009.jpg', N'Img\big_009.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (35, N'如果爱可以从来我也会选择拍拍服。爱让我变得疯狂。。', N'Shirt', CAST(100.00 AS Decimal(18, 2)), CAST(86.00 AS Decimal(18, 2)), CAST(80.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'灰鼠', 61, 23, 150, N'Img\small_010.jpg', N'Img\big_010.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (36, N'沙滩的快乐，天空的漂浮，近的最真', N'Shirt', CAST(230.00 AS Decimal(18, 2)), CAST(200.00 AS Decimal(18, 2)), CAST(150.56 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'思念', 31, 56, 647, N'Img\small_011.jpg', N'Img\big_011.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (37, N'当我知道你们相爱，我选思念服，', N'Skirt', CAST(84.00 AS Decimal(18, 2)), CAST(76.00 AS Decimal(18, 2)), CAST(70.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'思念', 60, 45, 99, N'Img\small_012.jpg', N'Img\big_012.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (38, N'浪漫满屋中最的服装，让你看到最明明星星的', N'Skirt', CAST(97.89 AS Decimal(18, 2)), CAST(48.00 AS Decimal(18, 2)), CAST(45.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'思念', 63, 6, 94, N'Img\small_013.jpg', N'Img\big_013.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (39, N'看不到的幸福，抓不住的快乐', N'Coat', CAST(58.00 AS Decimal(18, 2)), CAST(50.98 AS Decimal(18, 2)), CAST(40.11 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'美焕', 4, 174, 90, N'Img\small_014.jpg', N'Img\big_014.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (41, N'成长让我快乐,成长也让我烦恼,经典外套,', N'Coat', CAST(96.00 AS Decimal(18, 2)), CAST(79.00 AS Decimal(18, 2)), CAST(68.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'美焕', 3, 58, 63, N'Img\small_016.jpg', N'Img\big_016.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (42, N'珍惜品牌,表情之美梦想成真之快乐至上，让女变得更加美丽', N'Shirt', CAST(112.52 AS Decimal(18, 2)), CAST(58.00 AS Decimal(18, 2)), CAST(50.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'灰鼠', 17, 23, 5, N'Img\small_017.jpg', N'Img\big_017.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (43, N'漂亮来自风情民族,海洋之风风情的婚沙，人生最幸福的时刻，从现在就可以开始', N'Coat', CAST(400.00 AS Decimal(18, 2)), CAST(306.89 AS Decimal(18, 2)), CAST(300.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'新沙', 23, 0, 147, N'Img\small_018.jpg', N'Img\big_018.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (44, N'水晶般的女人,换发亮丽的风彩,', N'HuFu', CAST(97.00 AS Decimal(18, 2)), CAST(90.00 AS Decimal(18, 2)), CAST(88.60 AS Decimal(18, 2)), N'广州        ', N'全新        ', N'沐沙', 14, 30, 41, N'Img\small_053.jpg', N'Img\big_053.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (45, N'亮丽之美广西,,', N'HuFu', CAST(89.00 AS Decimal(18, 2)), CAST(77.00 AS Decimal(18, 2)), CAST(45.00 AS Decimal(18, 2)), N'广州        ', N'全新        ', N'阿迪', 7, 0, 60, N'Img\small_054.jpg', N'Img\big_054.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (46, N'流水般的肌肤,水晶般的女人,换发亮丽的风彩,', N'HuFu', CAST(89.00 AS Decimal(18, 2)), CAST(82.00 AS Decimal(18, 2)), CAST(64.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'思念', 84, 10, 120, N'Img\small_055.jpg', N'Img\big_055.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (48, N'拥有才是最幸福的,水晶般的女人,换发亮丽的风彩,', N'MianMo', CAST(56.89 AS Decimal(18, 2)), CAST(40.00 AS Decimal(18, 2)), CAST(35.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'沐沙', 15, 0, 33, N'Img\small_057.jpg', N'Img\big_057.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (49, N'换发亮丽的风彩,享受最幸福的人生', N'MianMo', CAST(36.00 AS Decimal(18, 2)), CAST(34.00 AS Decimal(18, 2)), CAST(32.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'沐沙', 20, 30, 62, N'Img\small_058.jpg', N'Img\big_058.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (50, N'高贵而华丽的珍珠,让您永保快乐的美感气质之选..', N'PeiShi', CAST(120.80 AS Decimal(18, 2)), CAST(110.00 AS Decimal(18, 2)), CAST(105.60 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'金笠', 34, 26, 230, N'Img\small_060.jpg', N'Img\big_060.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (51, N'瑞丽女士之至上的欢乐..美妙人生..', N'TouShi', CAST(60.00 AS Decimal(18, 2)), CAST(53.00 AS Decimal(18, 2)), CAST(50.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'丽发', 11, 0, 41, N'Img\small_061.jpg', N'Img\big_061.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (52, N'瑞丽之光,让您永保快乐的美感气质之选..', N'PeiShi', CAST(113.00 AS Decimal(18, 2)), CAST(98.00 AS Decimal(18, 2)), CAST(105.60 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'金笠', 15, 3, 230, N'Img\small_060.jpg', N'Img\big_060.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (53, N'青春之选青春之物,', N'PeiShi', CAST(68.00 AS Decimal(18, 2)), CAST(60.00 AS Decimal(18, 2)), CAST(56.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'金笠', 18, 0, 230, N'Img\small_060.jpg', N'Img\big_060.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (58, N'好听的音乐，要有好的Mp3', N'MP3', CAST(320.00 AS Decimal(18, 2)), CAST(300.00 AS Decimal(18, 2)), CAST(287.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'三星', 29, 3, 170, N'Img\small_042.jpg', N'Img\big_042.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (59, N'让您的音乐更加的动听迷人', N'MP3', CAST(120.00 AS Decimal(18, 2)), CAST(96.00 AS Decimal(18, 2)), CAST(90.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'索尼', 18, 3, 357, N'Img\small_043.jpg', N'Img\big_043.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (61, N'只选择好听的，不选择贵的', N'MP3', CAST(98.00 AS Decimal(18, 2)), CAST(80.00 AS Decimal(18, 2)), CAST(70.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'联想', 100, 54, 325, N'Img\small_045.jpg', N'Img\big_045.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (62, N'音乐达人评选最具有魅力的一款产品', N'MP3', CAST(141.00 AS Decimal(18, 2)), CAST(110.00 AS Decimal(18, 2)), CAST(100.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'三星', 30, 14, 35, N'Img\small_046.jpg', N'Img\big_046.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (63, N'听出你的感觉听出你的凯，华丽', N'MP3', CAST(360.00 AS Decimal(18, 2)), CAST(320.00 AS Decimal(18, 2)), CAST(315.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'联想', 35, 55, 325, N'Img\small_047.jpg', N'Img\big_047.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (65, N'保证品质，包修、包换，随您选择', N'MP3', CAST(247.00 AS Decimal(18, 2)), CAST(210.00 AS Decimal(18, 2)), CAST(200.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'联想', 6, 0, 325, N'Img\small_049.jpg', N'Img\big_049.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (66, N'爱的光环，爱的声音', N'MP3', CAST(185.00 AS Decimal(18, 2)), CAST(168.00 AS Decimal(18, 2)), CAST(158.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'联想', 24, 0, 325, N'Img\small_050.jpg', N'Img\big_050.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (67, N'让你走在时尚的最前端,爱之我爱', N'MP3', CAST(100.00 AS Decimal(18, 2)), CAST(87.00 AS Decimal(18, 2)), CAST(80.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'联想', 56, 22, 325, N'Img\small_051.jpg', N'Img\big_051.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (70, N'中国风今夏之光，最美的女人', N'Coat', CAST(300.00 AS Decimal(18, 2)), CAST(220.00 AS Decimal(18, 2)), CAST(190.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'真维斯', 60, 25, 124, N'Img\small_002.jpg', N'Img\big_002.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (71, N'今夏疯狂的巴黎之恋，透明时装,让男人更加爱你', N'Coat', CAST(156.00 AS Decimal(18, 2)), CAST(125.00 AS Decimal(18, 2)), CAST(110.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'美斯特邦威', 90, 68, 56, N'Img\small_003.jpg', N'Img\big_003.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (72, N'穿上爱的外衣，青春永远留住', N'Coat', CAST(450.00 AS Decimal(18, 2)), CAST(390.00 AS Decimal(18, 2)), CAST(300.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'阿迪', 17, 12, 33, N'Img\small_004.jpg', N'Img\big_004.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (73, N'广西风情的婚沙，人生最幸福的时刻，从现在就可以开始', N'Coat', CAST(369.00 AS Decimal(18, 2)), CAST(347.00 AS Decimal(18, 2)), CAST(300.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'新沙', 33, 20, 900, N'Img\small_005.jpg', N'Img\big_005.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (74, N'流行迷你模式装，看不上眼的女生', N'Coat', CAST(199.00 AS Decimal(18, 2)), CAST(188.00 AS Decimal(18, 2)), CAST(147.90 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'美焕', 10, 3, 10, N'Img\small_006.jpg', N'Img\big_006.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (76, N'快乐极生悲水晶般的女人,换发亮丽的风彩,', N'HuFu', CAST(78.00 AS Decimal(18, 2)), CAST(70.00 AS Decimal(18, 2)), CAST(68.00 AS Decimal(18, 2)), N'广州        ', N'全新        ', N'沐沙', 124, 30, 41, N'Img\small_053.jpg', N'Img\big_053.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (77, N'仪式亮丽之美广西,,', N'HuFu', CAST(120.00 AS Decimal(18, 2)), CAST(111.00 AS Decimal(18, 2)), CAST(107.00 AS Decimal(18, 2)), N'广州        ', N'全新        ', N'阿迪', 14, 0, 60, N'Img\small_054.jpg', N'Img\big_054.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (78, N'票面朝三暮四流水般的肌肤,水晶般的女人,换发亮丽的风彩,', N'HuFu', CAST(135.00 AS Decimal(18, 2)), CAST(124.00 AS Decimal(18, 2)), CAST(117.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'思念', 25, 10, 120, N'Img\small_055.jpg', N'Img\big_055.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (79, N'有根有据之恋留住美丽,选择沐沙品牌,', N'MianMo', CAST(147.00 AS Decimal(18, 2)), CAST(100.00 AS Decimal(18, 2)), CAST(98.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'阿迪', 35, 5, 67, N'Img\small_056.jpg', N'Img\big_056.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (80, N'木工拥有才是最幸福的,水晶般的女人,换发亮丽的风彩,', N'MianMo', CAST(358.00 AS Decimal(18, 2)), CAST(257.00 AS Decimal(18, 2)), CAST(158.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'沐沙', 7, 0, 33, N'Img\small_057.jpg', N'Img\big_057.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (81, N'模式发亮丽的风彩,享受最幸福的人生', N'MianMo', CAST(125.00 AS Decimal(18, 2)), CAST(118.00 AS Decimal(18, 2)), CAST(32.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'沐沙', 2, 30, 62, N'Img\small_058.jpg', N'Img\big_058.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (82, N'模式而华丽的珍珠,让您永保快乐的美感气质之选..', N'PeiShi', CAST(358.00 AS Decimal(18, 2)), CAST(350.00 AS Decimal(18, 2)), CAST(300.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'金笠', 4, 26, 230, N'Img\small_060.jpg', N'Img\big_060.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (83, N'博古通今女士之至上的欢乐..美妙人生..', N'TouShi', CAST(38.00 AS Decimal(18, 2)), CAST(30.00 AS Decimal(18, 2)), CAST(28.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'丽发', 7, 0, 41, N'Img\small_061.jpg', N'Img\big_061.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (84, N'小数点瑞丽之光,让您永保快乐的美感气质之选..', N'PeiShi', CAST(80.00 AS Decimal(18, 2)), CAST(78.00 AS Decimal(18, 2)), CAST(68.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'金笠', 2, 3, 230, N'Img\small_060.jpg', N'Img\big_060.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (85, N'橘子汁青春之选青春之物,', N'PeiShi', CAST(47.00 AS Decimal(18, 2)), CAST(36.00 AS Decimal(18, 2)), CAST(35.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'金笠', 31, 0, 230, N'Img\small_060.jpg', N'Img\big_060.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (87, N'特地老古董如果爱可以从来我也会选择拍拍服。爱让我变得疯狂。。', N'Shirt', CAST(100.00 AS Decimal(18, 2)), CAST(86.00 AS Decimal(18, 2)), CAST(80.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'灰鼠', 22, 23, 150, N'Img\small_010.jpg', N'Img\big_010.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (89, N'一目了然当我知道你们相爱，我选思念服，', N'Skirt', CAST(84.00 AS Decimal(18, 2)), CAST(76.00 AS Decimal(18, 2)), CAST(70.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'思念', 7, 2, 99, N'Img\small_012.jpg', N'Img\big_012.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (90, N'震荡浪漫满屋中最的服装，让你看到最明明星星的', N'Skirt', CAST(97.89 AS Decimal(18, 2)), CAST(48.00 AS Decimal(18, 2)), CAST(45.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'思念', 56, 6, 94, N'Img\small_013.jpg', N'Img\big_013.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (91, N'堪称看不到的幸福，抓不住的快乐', N'Coat', CAST(58.00 AS Decimal(18, 2)), CAST(50.98 AS Decimal(18, 2)), CAST(40.11 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'美焕', 23, 14, 90, N'Img\small_014.jpg', N'Img\big_014.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (92, N'幸福震荡的小女生，精明服装，不选择最贵，只选择最好.', N'Coat', CAST(63.00 AS Decimal(18, 2)), CAST(58.00 AS Decimal(18, 2)), CAST(55.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'美焕', 121, 2, 63, N'Img\small_015.jpg', N'Img\big_015.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (93, N'郁郁葱葱成长让我快乐,成长也让我烦恼,经典外套,', N'Coat', CAST(96.00 AS Decimal(18, 2)), CAST(79.00 AS Decimal(18, 2)), CAST(68.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'美焕', 120, 2, 63, N'Img\small_016.jpg', N'Img\big_016.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (94, N'款项珍惜品牌,表情之美梦想成真之快乐至上，让女变得更加美丽', N'Shirt', CAST(112.52 AS Decimal(18, 2)), CAST(58.00 AS Decimal(18, 2)), CAST(50.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'灰鼠', 32, 3, 5, N'Img\small_017.jpg', N'Img\big_017.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (95, N'款式漂亮来自风情民族,海洋之风风情的婚沙，人生最幸福的时刻，从现在就可以开始', N'Coat', CAST(400.00 AS Decimal(18, 2)), CAST(306.89 AS Decimal(18, 2)), CAST(300.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'新沙', 2, 1, 147, N'Img\small_018.jpg', N'Img\big_018.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (96, N'高贵而华丽的珍珠,让您永保快乐的美感气质之选..', N'PeiShi', CAST(120.80 AS Decimal(18, 2)), CAST(110.00 AS Decimal(18, 2)), CAST(105.60 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'金笠', 27, 2, 230, N'Img\small_060.jpg', N'Img\big_060.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (97, N'瑞丽女士之至上的欢乐..美妙人生..', N'TouShi', CAST(60.00 AS Decimal(18, 2)), CAST(53.00 AS Decimal(18, 2)), CAST(50.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'丽发', 1, 0, 41, N'Img\small_061.jpg', N'Img\big_061.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (98, N'瑞丽之光,让您永保快乐的美感气质之选..', N'PeiShi', CAST(113.00 AS Decimal(18, 2)), CAST(98.00 AS Decimal(18, 2)), CAST(105.60 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'金笠', 3, 3, 230, N'Img\small_060.jpg', N'Img\big_060.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (99, N'青春之选青春之物,', N'PeiShi', CAST(68.00 AS Decimal(18, 2)), CAST(60.00 AS Decimal(18, 2)), CAST(56.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'金笠', 6, 0, 230, N'Img\small_060.jpg', N'Img\big_060.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (100, N'亮丽之美广西,,', N'HuFu', CAST(89.00 AS Decimal(18, 2)), CAST(77.00 AS Decimal(18, 2)), CAST(45.00 AS Decimal(18, 2)), N'广州        ', N'全新        ', N'阿迪', 6, 0, 60, N'Img\small_054.jpg', N'Img\big_054.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (101, N'流水般的肌肤,水晶般的女人,换发亮丽的风彩,', N'HuFu', CAST(89.00 AS Decimal(18, 2)), CAST(82.00 AS Decimal(18, 2)), CAST(64.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'思念', 9, 3, 120, N'Img\small_055.jpg', N'Img\big_055.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (103, N'拥有才是最幸福的,水晶般的女人,换发亮丽的风彩,', N'MianMo', CAST(56.89 AS Decimal(18, 2)), CAST(40.00 AS Decimal(18, 2)), CAST(35.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'沐沙', 28, 1, 33, N'Img\small_057.jpg', N'Img\big_057.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (107, N'韩国今夏之光，最美的女人', N'Coat', CAST(300.00 AS Decimal(18, 2)), CAST(220.00 AS Decimal(18, 2)), CAST(190.00 AS Decimal(18, 2)), N'北京        ', N'全新        ', N'真维斯', 69, 60, 124, N'Img\small_002.jpg', N'Img\big_002.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (108, N'巴黎之春，透明时装,让男人更加爱你', N'Coat', CAST(156.00 AS Decimal(18, 2)), CAST(125.00 AS Decimal(18, 2)), CAST(110.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'美斯特邦威', 21, 230, 56, N'Img\small_003.jpg', N'Img\big_003.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (109, N'今天你有自信吗？今天要约会吗？', N'Coat', CAST(99.00 AS Decimal(18, 2)), CAST(88.00 AS Decimal(18, 2)), CAST(70.78 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'美斯特邦威', 51, 26, 56, N'Img\small_008.jpg', N'Img\big_008.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (110, N'梦想成真之快乐至上，让女变得更加美丽', N'Shirt', CAST(66.00 AS Decimal(18, 2)), CAST(58.00 AS Decimal(18, 2)), CAST(50.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'灰鼠', 17, 23, 5, N'Img\small_009.jpg', N'Img\big_009.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (111, N'如果爱可以从来我也会选择拍拍服。爱让我变得疯狂。。', N'Shirt', CAST(100.00 AS Decimal(18, 2)), CAST(86.00 AS Decimal(18, 2)), CAST(80.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'灰鼠', 76, 23, 150, N'Img\small_010.jpg', N'Img\big_010.jpg', N'否         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (112, N'沙滩的快乐，天空的漂浮，近的最真', N'Shirt', CAST(230.00 AS Decimal(18, 2)), CAST(200.00 AS Decimal(18, 2)), CAST(150.56 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'思念', 53, 56, 647, N'Img\small_011.jpg', N'Img\big_011.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (113, N'当我知道你们相爱，我选思念服，', N'Skirt', CAST(84.00 AS Decimal(18, 2)), CAST(76.00 AS Decimal(18, 2)), CAST(70.00 AS Decimal(18, 2)), N'上海        ', N'全新        ', N'思念', 70, 45, 99, N'Img\small_012.jpg', N'Img\big_012.jpg', N'是         ', 1)
+INSERT [dbo].[Item] ([Id], [Name], [ProductId], [AgoraPrice], [MemberPrice], [VipPrice], [Area], [Fresh], [Brand], [ClickTime], [Sale], [Remant], [SmallImg], [BitImg], [Commend], [Vis]) VALUES (114, N'浪漫满屋中最的服装，让你看到最明明星星的', N'Skirt', CAST(97.89 AS Decimal(18, 2)), CAST(48.00 AS Decimal(18, 2)), CAST(45.00 AS Decimal(18, 2)), N'广西        ', N'全新        ', N'思念', 71, 6, 94, N'Img\small_013.jpg', N'Img\big_013.jpg', N'是         ', 1)
+SET IDENTITY_INSERT [dbo].[Item] OFF
+/****** Object:  Table [dbo].[Product]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Product](
+	[Id] [varchar](30) NOT NULL,
+	[CategoryId] [varchar](max) NULL,
+	[Name] [varchar](max) NULL,
+	[Descriptions] [varchar](max) NULL,
+	[Vis] [bit] NULL,
+ CONSTRAINT [PK_Product] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SET ANSI_PADDING OFF
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'1为显示，0为隐藏' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Product', @level2type=N'COLUMN',@level2name=N'Vis'
+GO
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'Coat', N'Dress', N'外套', N'外套', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'Computer', N'Number', N'电脑', N'电脑', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'HuFu', N'Cosmetic', N'护肤', N'护肤', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'MianMo', N'Cosmetic', N'面膜', N'面膜', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'MP3', N'Number', N'MP3', N'MP3', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'PeiShi', N'Raiment', N'配饰', N'饰配', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'Shirt', N'Dress', N'衬衫', N'衬衫', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'ShouJi', N'Number', N'手机', N'手机', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'Skirt', N'Dress', N'裙子', N'裙子', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'Soprts', N'Shoes', N'运动鞋', N'运动鞋', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'TouShi', N'Raiment', N'头饰', N'头饰', 1)
+INSERT [dbo].[Product] ([Id], [CategoryId], [Name], [Descriptions], [Vis]) VALUES (N'TuoXie', N'Shoes', N'拖鞋', N'拖鞋', 1)
+/****** Object:  Table [dbo].[OrderStatus]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[OrderStatus](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[OrderId] [varchar](max) NULL,
+	[Payment] [int] NULL,
+	[CheckOrder] [bit] NULL,
+	[FeedBack] [int] NULL,
+ CONSTRAINT [PK_OrderStatus] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SET ANSI_PADDING OFF
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'0为没有付款，1为已经付款' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'OrderStatus', @level2type=N'COLUMN',@level2name=N'Payment'
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'0表示没有收到货，1表示已经收到货' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'OrderStatus', @level2type=N'COLUMN',@level2name=N'CheckOrder'
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'0表示没有收到货物，无法评论，1表示对货物满意，2表示对货物不满意' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'OrderStatus', @level2type=N'COLUMN',@level2name=N'FeedBack'
+GO
+SET IDENTITY_INSERT [dbo].[OrderStatus] ON
+INSERT [dbo].[OrderStatus] ([Id], [OrderId], [Payment], [CheckOrder], [FeedBack]) VALUES (47, N'20121202170953', 1, 0, 0)
+INSERT [dbo].[OrderStatus] ([Id], [OrderId], [Payment], [CheckOrder], [FeedBack]) VALUES (48, N'20121202171256', 1, 0, 0)
+INSERT [dbo].[OrderStatus] ([Id], [OrderId], [Payment], [CheckOrder], [FeedBack]) VALUES (49, N'20130408182945', 1, 0, 0)
+INSERT [dbo].[OrderStatus] ([Id], [OrderId], [Payment], [CheckOrder], [FeedBack]) VALUES (50, N'20130408182945', 1, 0, 0)
+INSERT [dbo].[OrderStatus] ([Id], [OrderId], [Payment], [CheckOrder], [FeedBack]) VALUES (51, N'20130415201931', 0, 0, 0)
+INSERT [dbo].[OrderStatus] ([Id], [OrderId], [Payment], [CheckOrder], [FeedBack]) VALUES (52, N'20130415201931', 0, 0, 0)
+INSERT [dbo].[OrderStatus] ([Id], [OrderId], [Payment], [CheckOrder], [FeedBack]) VALUES (53, N'20170619171350', 0, 0, 0)
+INSERT [dbo].[OrderStatus] ([Id], [OrderId], [Payment], [CheckOrder], [FeedBack]) VALUES (54, N'20170619171350', 0, 0, 0)
+INSERT [dbo].[OrderStatus] ([Id], [OrderId], [Payment], [CheckOrder], [FeedBack]) VALUES (55, N'20170619171353', 0, 0, 0)
+INSERT [dbo].[OrderStatus] ([Id], [OrderId], [Payment], [CheckOrder], [FeedBack]) VALUES (56, N'20170619171353', 0, 0, 0)
+SET IDENTITY_INSERT [dbo].[OrderStatus] OFF
+/****** Object:  Table [dbo].[Order]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Order](
+	[Id] [varchar](50) NOT NULL,
+	[UserName] [varchar](max) NULL,
+	[ItemName] [varchar](max) NULL,
+	[Price] [decimal](18, 2) NULL,
+	[Total] [int] NULL,
+	[CarryMode] [varchar](max) NULL,
+	[Adress] [varchar](max) NULL,
+	[Postalcode] [int] NULL,
+	[Phone] [varchar](max) NULL,
+	[Telephone] [bigint] NULL,
+	[Status] [bit] NULL,
+	[ItemId] [int] NULL,
+ CONSTRAINT [PK_Order] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+SET ANSI_PADDING OFF
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'邮政编码' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Order', @level2type=N'COLUMN',@level2name=N'Postalcode'
+GO
+EXEC sys.sp_addextendedproperty @name=N'MS_Description', @value=N'0表示新加的订单,1表示完成订单' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'Order', @level2type=N'COLUMN',@level2name=N'Status'
+GO
+INSERT [dbo].[Order] ([Id], [UserName], [ItemName], [Price], [Total], [CarryMode], [Adress], [Postalcode], [Phone], [Telephone], [Status], [ItemId]) VALUES (N'20121202170953', N'qqzhuimeng', N'如果爱可以从来我也会选择拍拍服。爱让我变得疯狂。。', CAST(86.00 AS Decimal(18, 2)), 1, N'平邮', N'不说我的挖大不说我的挖大', 123123, N'028-88888888', 13307889898, 0, 0)
+INSERT [dbo].[Order] ([Id], [UserName], [ItemName], [Price], [Total], [CarryMode], [Adress], [Postalcode], [Phone], [Telephone], [Status], [ItemId]) VALUES (N'20121202171256', N'qqzhuimeng', N'迷你模式装，看不上眼的女生', CAST(130.56 AS Decimal(18, 2)), 1, N'平邮', N'北京市东城区人民政府', 222211, N'028-88888888', 13307889898, 0, 0)
+INSERT [dbo].[Order] ([Id], [UserName], [ItemName], [Price], [Total], [CarryMode], [Adress], [Postalcode], [Phone], [Telephone], [Status], [ItemId]) VALUES (N'20130408182945', N'wangyong', N'2012年最流行外套', CAST(150.00 AS Decimal(18, 2)), 1, N'平邮', N'海南省三亚市', 52000, N'012-88888888', 12524545411, 0, 0)
+INSERT [dbo].[Order] ([Id], [UserName], [ItemName], [Price], [Total], [CarryMode], [Adress], [Postalcode], [Phone], [Telephone], [Status], [ItemId]) VALUES (N'20130415201931', N'admin', N'好听的音乐，要有好的Mp3', CAST(300.00 AS Decimal(18, 2)), 1, N'快递', NULL, 0, NULL, 0, 0, 0)
+INSERT [dbo].[Order] ([Id], [UserName], [ItemName], [Price], [Total], [CarryMode], [Adress], [Postalcode], [Phone], [Telephone], [Status], [ItemId]) VALUES (N'20170619171350', N'a862351901', N'梦想成真之快乐至上，让女变得更加美丽', CAST(58.00 AS Decimal(18, 2)), 1, N'快递', NULL, 0, NULL, 0, 0, 0)
+INSERT [dbo].[Order] ([Id], [UserName], [ItemName], [Price], [Total], [CarryMode], [Adress], [Postalcode], [Phone], [Telephone], [Status], [ItemId]) VALUES (N'20170619171353', N'a862351901', N'今天你有自信吗？今天要约会吗？', CAST(88.00 AS Decimal(18, 2)), 1, N'快递', NULL, 0, NULL, 0, 0, 0)
+/****** Object:  StoredProcedure [dbo].[SelectItemTitle]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectItemTitle]
+(
+@nId int
+)
+ AS
+SELECT Name FROM Item WHERE Id=@nId
+GO
+/****** Object:  StoredProcedure [dbo].[SelectItemByProductId]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectItemByProductId]
+(
+@ProductId varchar(30)
+)
+AS
+SELECT Id,Name,AgoraPrice,MemberPrice,VipPrice,SmallImg FROM Item WHERE ProductId=@ProductId AND Vis=1
+GO
+/****** Object:  StoredProcedure [dbo].[SelectItemByNew]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[SelectItemByNew]
+AS
+SELECT TOP 20 Id,Name,AgoraPrice,MemberPrice,VipPrice,SmallImg FROM Item WHERE Vis=1 Order by Id DESC
+GO
+/****** Object:  StoredProcedure [dbo].[SelectItemByID]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectItemByID]
+(
+@Id varchar(30)
+)
+AS
+SELECT * FROM Item WHERE Id=@Id
+GO
+/****** Object:  StoredProcedure [dbo].[SelectItemByCommend]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectItemByCommend]
+AS
+SELECT top 10 Id,Name,AgoraPrice,MemberPrice,VipPrice,SmallImg FROM Item WHERE Vis=1 AND Commend='是'
+GO
+/****** Object:  StoredProcedure [dbo].[SelectItemByClickTime]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[SelectItemByClickTime]
+AS
+SELECT TOP 15 Id,Name,AgoraPrice,MemberPrice,VipPrice,SmallImg FROM Item WHERE Vis=1 Order By ClickTime DESC
+GO
+/****** Object:  StoredProcedure [dbo].[SelectItemByCategoryId]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectItemByCategoryId]
+(
+@CategoryId varchar(30)
+)
+AS
+SELECT TOP 20  i.Id,i.Name,i.AgoraPrice,i.MemberPrice,i.VipPrice,i.SmallImg FROM Item i INNER JOIN Product p ON i.ProductId=p.Id WHERE p.CategoryId=@CategoryId AND  i.Vis=1
+GO
+/****** Object:  StoredProcedure [dbo].[SelectItemAllByCategoryId]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectItemAllByCategoryId]
+(
+@CategoryId varchar(30)
+)
+AS
+SELECT  i.Id,i.Name,i.AgoraPrice,i.MemberPrice,i.VipPrice,i.SmallImg FROM Item i INNER JOIN Product p ON i.ProductId=p.Id WHERE p.CategoryId=@CategoryId AND  i.Vis=1
+GO
+/****** Object:  StoredProcedure [dbo].[SelectCategoryByID]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[SelectCategoryByID]
+(
+@Id varchar(30)
+)
+AS
+SELECT * FROM Category WHERE Id=@Id
+GO
+/****** Object:  StoredProcedure [dbo].[SelectCategory]    Script Date: 06/20/2017 06:49:51 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[SelectCategory]
+AS
+SELECT * FROM Category
+GO
+/****** Object:  StoredProcedure [dbo].[InsertUserToUser]    Script Date: 06/20/2017 06:49:51 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[InsertUserToUser]
+(@Name varchar(30),@Pass varchar(30),@Email varchar(50),@Phone varchar(30),@Telephone bigint,@Adress nvarchar(50),@IP varchar(30))
+AS
+INSERT INTO [User](Name,Pass,Email,Phone,Telephone,Adress,IP) VALUES(@Name,@Pass,@Email,@Phone,@Telephone,@Adress,@IP)
+GO
+/****** Object:  StoredProcedure [dbo].[InsertManagerToUser]    Script Date: 06/20/2017 06:49:51 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[InsertManagerToUser]
+(@Name varchar(30),@Pass varchar(30),@Email varchar(50),@Phone varchar(30),@Telephone bigint,@Adress nvarchar(50),@IP varchar(30))
+AS
+INSERT INTO [User](Name,Pass,Email,Phone,Telephone,Adress,IP,IsManage) VALUES(@Name,@Pass,@Email,@Phone,@Telephone,@Adress,@IP,1)
+GO
+/****** Object:  StoredProcedure [dbo].[InsertIntoUserMess]    Script Date: 06/20/2017 06:49:51 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[InsertIntoUserMess] 
+(
+@Name nvarchar(30),@Content nText,@Time DateTime
+)
+AS
+INSERT INTO UserMess (Name,Content,MeTime) VALUES(@Name,@Content,@Time)
+GO
+/****** Object:  StoredProcedure [dbo].[SelectOrderStatus]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+create PROCEDURE [dbo].[SelectOrderStatus]
+(
+@OrderId varchar(30)
+)
+AS 
+SELECT * FROM [OrderStatus] WHERE OrderId=@OrderId
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateItemClick]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[UpdateItemClick]
+(@Id int)
+AS
+UPDATE Item SET ClickTime=ClickTime+1 WHERE Id=@Id
+GO
+/****** Object:  StoredProcedure [dbo].[SelectUserMessById]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+create procedure [dbo].[SelectUserMessById]
+@id int
+as
+select * from UserMess where Id=@id
+GO
+/****** Object:  StoredProcedure [dbo].[SelectUserMess]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectUserMess] 
+AS
+SELECT * FROM UserMess
+GO
+/****** Object:  StoredProcedure [dbo].[SelectUserById]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectUserById]
+(@Id varchar(30))
+AS
+SELECT * FROM [User] WHERE Id=@Id
+GO
+/****** Object:  StoredProcedure [dbo].[SelectUser]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectUser]
+AS
+SELECT * FROM [User]
+GO
+/****** Object:  StoredProcedure [dbo].[SelectProductById]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectProductById]
+(@Id varchar(30))
+AS
+SELECT * FROM Product WHERE Id=@Id
+GO
+/****** Object:  StoredProcedure [dbo].[SelectProductByCategoryId]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectProductByCategoryId]
+(@CategoryId varchar(30))
+AS
+SELECT * FROM Product WHERE CategoryId=@CategoryId
+GO
+/****** Object:  StoredProcedure [dbo].[SelectProduct]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectProduct]
+AS
+SELECT * FROM Product
+GO
+/****** Object:  StoredProcedure [dbo].[ReplyUserMessById]    Script Date: 06/20/2017 06:49:51 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+create procedure [dbo].[ReplyUserMessById]
+@id int,
+@reply text
+as
+update UserMess set reply=@reply where Id=@id
+GO
+/****** Object:  StoredProcedure [dbo].[UpdateOrderData]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[UpdateOrderData]
+(@Id varchar(50),@CarryMode nvarchar(20),@Adress nvarchar(50),@Postalcode int,@Phone varchar(30),@Telephone bigint)
+AS
+UPDATE [Order] 
+SET CarryMode=@CarryMode,Adress=@Adress,Postalcode=@Postalcode,Phone=@Phone,Telephone=@Telephone WHERE Id=@Id
+GO
+/****** Object:  StoredProcedure [dbo].[SelectOrderTwoByName]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectOrderTwoByName]
+(
+@Id varchar(50),@UserName varchar(30)
+)
+AS 
+SELECT Id,UserName,ItemName,Price,Total,ItemId FROM [Order] WHERE UserName=@UserName AND Id=@Id
+GO
+/****** Object:  StoredProcedure [dbo].[SelectOrderOneByName]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectOrderOneByName]
+(
+@UserName varchar(30)
+)
+AS 
+SELECT Id,UserName,ItemName,Price,Total,ItemId FROM [Order] WHERE UserName=@UserName
+GO
+/****** Object:  StoredProcedure [dbo].[SelectOrderAndOrderStatus]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectOrderAndOrderStatus]
+(@Name varchar(30))
+AS
+SELECT o.Id,o.UserName,o.ItemName,o.Price,o.Total,o.Adress,o.phone,o.telephone,s.Payment,s.CheckOrder,s.FeedBack , o.ItemId
+FROM [Order] o INNER JOIN OrderStatus s ON o.Id=s.OrderId WHERE o.UserName=@Name
+GO
+/****** Object:  StoredProcedure [dbo].[SelectOrder]    Script Date: 06/20/2017 06:49:52 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER OFF
+GO
+CREATE PROCEDURE [dbo].[SelectOrder]
+AS
+SELECT * FROM [Order]
+GO
+/****** Object:  StoredProcedure [dbo].[InsertToOrder]    Script Date: 06/20/2017 06:49:51 ******/
+SET ANSI_NULLS OFF
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[InsertToOrder]
+(
+@Id varchar(50),
+@UserName varchar(30),
+@ItemName nvarchar(50),
+@Price decimal(9,2),
+@Total int,
+@ItemId int
+)
+AS
+begin
+INSERT INTO [Order] (Id,UserName,ItemName,Price,Total,Itemid) 
+VALUES(@Id,@UserName,@ItemName,@Price,@Total,@ItemId)
+
+insert into OrderStatus(orderid,payment,checkorder,feedback) values(@Id,0,0,0)
+end
+GO
+/****** Object:  Default [DF_Category_Vis]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Category] ADD  CONSTRAINT [DF_Category_Vis]  DEFAULT ((1)) FOR [Vis]
+GO
+/****** Object:  Default [DF_Item_Fresh]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Item] ADD  CONSTRAINT [DF_Item_Fresh]  DEFAULT (N'全新') FOR [Fresh]
+GO
+/****** Object:  Default [DF_Item_ClickTime]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Item] ADD  CONSTRAINT [DF_Item_ClickTime]  DEFAULT ((0)) FOR [ClickTime]
+GO
+/****** Object:  Default [DF_Item_Sale]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Item] ADD  CONSTRAINT [DF_Item_Sale]  DEFAULT ((0)) FOR [Sale]
+GO
+/****** Object:  Default [DF_Item_Remant]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Item] ADD  CONSTRAINT [DF_Item_Remant]  DEFAULT ((0)) FOR [Remant]
+GO
+/****** Object:  Default [DF_Item_Commend]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Item] ADD  CONSTRAINT [DF_Item_Commend]  DEFAULT (N'是') FOR [Commend]
+GO
+/****** Object:  Default [DF_Item_Vis]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Item] ADD  CONSTRAINT [DF_Item_Vis]  DEFAULT ((1)) FOR [Vis]
+GO
+/****** Object:  Default [DF_Order_CarryMode]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Order] ADD  CONSTRAINT [DF_Order_CarryMode]  DEFAULT (N'快递') FOR [CarryMode]
+GO
+/****** Object:  Default [DF_Order_Postalcode]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Order] ADD  CONSTRAINT [DF_Order_Postalcode]  DEFAULT ((0)) FOR [Postalcode]
+GO
+/****** Object:  Default [DF_Order_Telephone]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Order] ADD  CONSTRAINT [DF_Order_Telephone]  DEFAULT ((0)) FOR [Telephone]
+GO
+/****** Object:  Default [DF_Order_Status]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Order] ADD  CONSTRAINT [DF_Order_Status]  DEFAULT ((0)) FOR [Status]
+GO
+/****** Object:  Default [DF_OrderStatus_Payment]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[OrderStatus] ADD  CONSTRAINT [DF_OrderStatus_Payment]  DEFAULT ((0)) FOR [Payment]
+GO
+/****** Object:  Default [DF_OrderStatus_CheckOrder]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[OrderStatus] ADD  CONSTRAINT [DF_OrderStatus_CheckOrder]  DEFAULT ((0)) FOR [CheckOrder]
+GO
+/****** Object:  Default [DF_OrderStatus_FeedBack]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[OrderStatus] ADD  CONSTRAINT [DF_OrderStatus_FeedBack]  DEFAULT ((0)) FOR [FeedBack]
+GO
+/****** Object:  Default [DF_Product_Vis]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Product] ADD  CONSTRAINT [DF_Product_Vis]  DEFAULT ((1)) FOR [Vis]
+GO
+/****** Object:  Default [DF_User_Vis]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[User] ADD  CONSTRAINT [DF_User_Vis]  DEFAULT ((1)) FOR [Vis]
+GO
+/****** Object:  Default [DF_User_IsManage]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[User] ADD  CONSTRAINT [DF_User_IsManage]  DEFAULT ((0)) FOR [IsManage]
+GO
+/****** Object:  Default [DF_UserMess_Vis]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[UserMess] ADD  CONSTRAINT [DF_UserMess_Vis]  DEFAULT ((1)) FOR [Vis]
+GO
+/****** Object:  Default [DF_Vote_Total]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Vote] ADD  CONSTRAINT [DF_Vote_Total]  DEFAULT ((0)) FOR [VoteNum]
+GO
+/****** Object:  Default [DF_Vote_Vis]    Script Date: 06/20/2017 06:49:52 ******/
+ALTER TABLE [dbo].[Vote] ADD  CONSTRAINT [DF_Vote_Vis]  DEFAULT ((1)) FOR [Vis]
+GO
